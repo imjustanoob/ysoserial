@@ -4,7 +4,7 @@ package ysoserial.payloads;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.Set;
-
+import java.util.Arrays;
 import org.reflections.Reflections;
 
 import ysoserial.GeneratePayload;
@@ -56,7 +56,9 @@ public interface ObjectPayload <T> {
         }
 
 
-        public static Object makePayloadObject ( String payloadType, String payloadArg ) {
+        public static Object makePayloadObject (final String[] payargs) {
+          final String payloadType = payargs[0];
+          final String[] command = Arrays.copyOfRange(payargs, 1, payargs.length);
             final Class<? extends ObjectPayload> payloadClass = getPayloadClass(payloadType);
             if ( payloadClass == null || !ObjectPayload.class.isAssignableFrom(payloadClass) ) {
                 throw new IllegalArgumentException("Invalid payload type '" + payloadType + "'");
@@ -65,8 +67,19 @@ public interface ObjectPayload <T> {
 
             final Object payloadObject;
             try {
-                final ObjectPayload payload = payloadClass.newInstance();
-                payloadObject = payload.getObject(payloadArg);
+              final ObjectPayload payload = payloadClass.newInstance();
+
+              if (payload instanceof ExtendedObjectPayload) {
+                ExtendedObjectPayload extended_payload = (ExtendedObjectPayload) payload;
+                payloadObject = extended_payload.getObject(command);
+
+              }
+              else {
+                if (command.length > 1) {
+                  System.err.println("The payload '" + payloadType + "' does not support arguments");
+                }
+                payloadObject = payload.getObject(command[0]);
+              }
             }
             catch ( Exception e ) {
                 throw new IllegalArgumentException("Failed to construct payload", e);

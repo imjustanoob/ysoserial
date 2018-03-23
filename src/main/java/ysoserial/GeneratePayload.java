@@ -20,10 +20,12 @@ public class GeneratePayload {
 			System.exit(USAGE_CODE);
 		}
 		final String payloadType = args[0];
-		final String[] command = Arrays.copyOfRange(args, 1, args.length);
+		String[] command = Arrays.copyOfRange(args, 1, args.length);
 		final boolean xstreamDeserialization = (Arrays.asList(args).contains("-xstream"));
 		if(xstreamDeserialization){
-				command = ArrayUtils.removeElement(command, "-xstream");
+				List<String> list = new ArrayList<String>(Arrays.asList(command));
+				list.remove("-xstream");
+				command = list.toArray(new String[0]);
 		}
 
 
